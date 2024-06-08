@@ -1,5 +1,6 @@
 streamlit~=1.35.0
 python-docx~=1.1.2
+langchain
 crewai~=0.30.11
 duckduckgo_search~=6.1.5
 langchain-google-genai~=1.0.6
