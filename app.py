@@ -228,7 +228,7 @@ def main():
         
         doc = Document()
 
-        doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
+        doc.add_picture(image, width=docx.shared.Inches(4),length=docx.shared.Inches(4))  # Add image to the document
         
          # Option to download content as a Word document
         doc.add_heading(topic, 0)
