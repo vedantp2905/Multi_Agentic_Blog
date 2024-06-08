@@ -1,7 +1,6 @@
-pip install streamlit 
-pip install python-docx
-pip install crewai
-pip install -U duckduckgo-search
-pip install langchain_google_genai
-pip install docx
-pip install replicate
+streamlit==1.35.0
+python-docx==1.1.2
+crewai==0.30.11
+duckduckgo_search==6.1.5
+langchain-google-genai==1.0.6
+replicate==0.26.0
