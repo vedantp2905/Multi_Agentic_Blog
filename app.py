@@ -1,6 +1,5 @@
 import os
 import docx
-from dotenv import load_dotenv  # Import dotenv to load environment variables
 from langchain_openai import OpenAI
 import streamlit as st  # Import Streamlit for web application interface
 import re  # Import regular expressions for text processing
@@ -9,8 +8,8 @@ from io import BytesIO  # Import BytesIO for in-memory file operations
 import replicate  # Import Replicate for image generation
 import requests  # Import requests to download images
 
-# Load environment variables from secret.env file
-load_dotenv('secret.env')
+import asyncio
+import google.generativeai as genai  # Import the appropriate module for Gemini
 
 # Import ChatGoogleGenerativeAI: High-level interface to Google's AI models
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -184,12 +183,23 @@ def main():
         llm = OpenAI(temperature=0.3)
         mod = 'OpenAI'
     elif model == 'Gemini':
-        llm = ChatGoogleGenerativeAI(
-        model="gemini-pro",
-        verbose=True,
-        temperature=0.6,
-        google_api_key=api_key  # Use the API key from the environment variable
-    )
+
+        async def setup_gemini():
+            loop = asyncio.get_event_loop()
+            if loop is None:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-pro",
+                verbose=True,
+                temperature=0.6,
+                google_api_key=api_key  # Use the API key from the environment variable
+            )
+            return llm
+        
+        llm = asyncio.run(setup_gemini())
+        mod='Gemini'
         
         
     # User input for the blog topic
