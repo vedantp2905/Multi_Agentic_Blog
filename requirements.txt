@@ -2,7 +2,7 @@ streamlit
 python-docx
 crewai
 duckduckgo_search
-langchain-google-gena
+langchain-google-genai
 replicate
 openai
 langchain-core
