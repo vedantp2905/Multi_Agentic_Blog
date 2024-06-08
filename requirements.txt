@@ -4,4 +4,3 @@ crewai
 duckduckgo_search
 langchain-google-genai
 replicate
-sqlite3
