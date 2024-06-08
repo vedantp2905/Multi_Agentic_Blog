@@ -1,4 +1,7 @@
 import os
+# Upgrade SQLite3 to the required version
+os.system('apt-get update && apt-get install -y sqlite3')
+
 import docx
 from dotenv import load_dotenv  # Import dotenv to load environment variables
 from langchain_openai import OpenAI
