@@ -1,9 +1,7 @@
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
 import os
 import docx
+import asyncio
+from dotenv import load_dotenv  # Import dotenv to load environment variables
 from langchain_openai import OpenAI
 import streamlit as st  # Import Streamlit for web application interface
 import re  # Import regular expressions for text processing
@@ -11,6 +9,9 @@ from docx import Document  # Import python-docx for Word document creation
 from io import BytesIO  # Import BytesIO for in-memory file operations
 import replicate  # Import Replicate for image generation
 import requests  # Import requests to download images
+
+# Load environment variables from secret.env file
+load_dotenv('secret.env')
 
 # Import ChatGoogleGenerativeAI: High-level interface to Google's AI models
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -164,6 +165,10 @@ def generate_images(replicate_api_token,prompt):
         return output[0]
     else:
         raise ValueError("No image URL returned from Replicate API.")
+    
+async def async_main():
+    # Your async code here
+    llm = await ChatGoogleGenerativeAI()
 
 # Streamlit web application
 def main():
@@ -171,9 +176,9 @@ def main():
    mod = None
    with st.sidebar:
        with st.form('Gemini/OpenAI'):
-        # User selects the model (Gemini/OpenAI) and enters API keys
+        # User selects the model (Gemini/Cohere) and enters API keys
         model = st.radio('Choose Gemini/OpenAI', ('Gemini', 'OpenAI'))
-        api_key = st.text_input('Enter {model} API key', type="password")
+        api_key = st.text_input(f'Enter {model} API key', type="password")
         replicate_api_token = st.text_input('Enter Replicate API key', type="password")
         submitted = st.form_submit_button("Submit")
 
@@ -227,6 +232,8 @@ def main():
             file_name=f"{topic}.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
+    
+    asyncio.run(async_main())
 
 if __name__ == "__main__":
     main()
