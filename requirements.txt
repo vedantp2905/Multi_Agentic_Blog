@@ -1,0 +1,6 @@
+pip install --q crewai
+pip install --q -U duckduckgo-search
+pip install --q langchain_google_genai
+pip install --q streamlit python-docx
+pip install --q docx
+pip install --q replicate
