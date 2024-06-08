@@ -143,8 +143,8 @@ def generate_text(llm,topic):
 # Function to generate images based on prompts
 def generate_images(replicate_api_token,prompt):
     
-    # Setting up the Replicate client
-    replicate.Client(api_token=replicate_api_token)
+    os.environ["REPLICATE_API_TOKEN"] = "replicate_api_token"
+    replicate.Client(replicate_api_token)
 
     # Define the input for the image generation
     input = {
@@ -179,9 +179,17 @@ def main():
 # Check if API key is provided and set up the language model accordingly
    if api_key:
     if model == 'OpenAI':
-        os.environ["OPENAI_API_KEY"] = api_key
-        llm = OpenAI(temperature=0.3)
-        mod = 'OpenAI'
+        async def setup_OpenAI():
+            loop = asyncio.get_event_loop()
+            if loop is None:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+            os.environ["OPENAI_API_KEY"] = api_key
+            llm = OpenAI(temperature=0.3)
+            mod = 'OpenAI'
+            return llm
+        
     elif model == 'Gemini':
 
         async def setup_gemini():
