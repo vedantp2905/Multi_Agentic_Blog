@@ -6,4 +6,4 @@ langchain-google-genai
 replicate
 openai
 langchain-core
-chromadb~=0.3.29
+pysqlite3-binary
