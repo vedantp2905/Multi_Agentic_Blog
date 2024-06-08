@@ -23,7 +23,7 @@ from crewai import Agent, Task, Crew, Process
 from langchain_community.tools import DuckDuckGoSearchRun
 
 # Function to generate text based on topic
-def generate_text(llm,topic):
+def generate_text(llm, topic):
     inputs = {'topic': topic}
 
     # Initialize DuckDuckGo web search tool: Enables real-time fact-finding for debates
@@ -143,8 +143,7 @@ def generate_text(llm,topic):
     return result
 
 # Function to generate images based on prompts
-def generate_images(replicate_api_token,prompt):
-    
+def generate_images(replicate_api_token, prompt):
     # Setting up the Replicate client
     replicate.Client(api_token=replicate_api_token)
 
@@ -165,75 +164,73 @@ def generate_images(replicate_api_token,prompt):
         return output[0]
     else:
         raise ValueError("No image URL returned from Replicate API.")
-    
-async def async_main():
-    # Your async code here
-    llm = await ChatGoogleGenerativeAI()
 
-# Streamlit web application
-def main():
-   st.header('AI Blog Content Generator')
-   mod = None
-   with st.sidebar:
-       with st.form('Gemini/OpenAI'):
-        # User selects the model (Gemini/Cohere) and enters API keys
-        model = st.radio('Choose Gemini/OpenAI', ('Gemini', 'OpenAI'))
-        api_key = st.text_input(f'Enter {model} API key', type="password")
-        replicate_api_token = st.text_input('Enter Replicate API key', type="password")
-        submitted = st.form_submit_button("Submit")
-
-# Check if API key is provided and set up the language model accordingly
-   if api_key:
-    if model == 'OpenAI':
-        os.environ["OPENAI_API_KEY"] = api_key
-        llm = OpenAI(temperature=0.3)
-        mod = 'OpenAI'
-    elif model == 'Gemini':
-        llm = ChatGoogleGenerativeAI(
+async def async_setup_gemini(api_key):
+    # Initialize ChatGoogleGenerativeAI asynchronously
+    return ChatGoogleGenerativeAI(
         model="gemini-pro",
         verbose=True,
         temperature=0.6,
-        google_api_key=api_key  # Use the API key from the environment variable
+        google_api_key=api_key
     )
-        
-        
-    # User input for the blog topic
-    topic = st.text_input("Enter the blog topic:")
 
-    if st.button("Generate Blog Content"):
-        with st.spinner("Generating content..."):
-            generated_content = generate_text(llm,topic)
+# Streamlit web application
+def main():
+    st.header('AI Blog Content Generator')
+    mod = None
+    with st.sidebar:
+        with st.form('Gemini/OpenAI'):
+            # User selects the model (Gemini/Cohere) and enters API keys
+            model = st.radio('Choose Gemini/OpenAI', ('Gemini', 'OpenAI'))
+            api_key = st.text_input(f'Enter {model} API key', type="password")
+            replicate_api_token = st.text_input('Enter Replicate API key', type="password")
+            submitted = st.form_submit_button("Submit")
+
+    # Check if API key is provided and set up the language model accordingly
+    if api_key and submitted:
+        if model == 'OpenAI':
+            os.environ["OPENAI_API_KEY"] = api_key
+            llm = OpenAI(temperature=0.3)
+            mod = 'OpenAI'
+        elif model == 'Gemini':
+            llm = asyncio.run(async_setup_gemini(api_key))
+            mod = 'Gemini'
+
+        # User input for the blog topic
+        topic = st.text_input("Enter the blog topic:")
+
+        if st.button("Generate Blog Content"):
+            with st.spinner("Generating content..."):
+                generated_content = generate_text(llm, topic)
+                
+                generated_image_url = generate_images(replicate_api_token, topic) 
+                
+                st.image(generated_image_url, caption="Generated Image", use_column_width=True)
+                
+            st.write(generated_content)
+
+            # Download the images and add them to the document
+            response = requests.get(generated_image_url)
+            image = BytesIO(response.content)
             
-            generated_image_url = generate_images(replicate_api_token,topic) 
+            doc = Document()
+
+            doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
             
-            st.image(generated_image_url, caption="Generated Image", use_column_width=True)
-            
-        st.write(generated_content)
+            # Option to download content as a Word document
+            doc.add_heading(topic, 0)
+            doc.add_paragraph(generated_content)
 
-        # Download the images and add them to the document
-        response = requests.get(generated_image_url)
-        image = BytesIO(response.content)
-        
-        doc = Document()
+            buffer = BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
 
-        doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
-        
-         # Option to download content as a Word document
-        doc.add_heading(topic, 0)
-        doc.add_paragraph(generated_content)
-
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-
-        st.download_button(
-            label="Download as Word Document",
-            data=buffer,
-            file_name=f"{topic}.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-    
-    asyncio.run(async_main())
+            st.download_button(
+                label="Download as Word Document",
+                data=buffer,
+                file_name=f"{topic}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
 
 if __name__ == "__main__":
     main()
