@@ -143,8 +143,7 @@ def generate_text(llm,topic):
 # Function to generate images based on prompts
 def generate_images(replicate_api_token,prompt):
     
-    os.environ["REPLICATE_API_TOKEN"] = "replicate_api_token"
-    replicate.Client(replicate_api_token)
+    os.environ["REPLICATE_API_TOKEN"] = replicate_api_token
 
     # Define the input for the image generation
     input = {
