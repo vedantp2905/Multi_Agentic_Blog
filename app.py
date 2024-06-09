@@ -168,8 +168,8 @@ def main():
    with st.sidebar:
        with st.form('Gemini/OpenAI'):
         # User selects the model (Gemini/Cohere) and enters API keys
-        model = st.radio('Choose Gemini/OpenAI', ('Gemini', 'OpenAI'))
-        api_key = st.text_input(f'Enter {model} API key', type="password")
+        model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI'))
+        api_key = st.text_input(f'Enter API key', type="password")
         replicate_api_token = st.text_input('Enter Replicate API key', type="password")
         submitted = st.form_submit_button("Submit")
 
