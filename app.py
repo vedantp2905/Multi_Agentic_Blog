@@ -2,7 +2,6 @@ import os
 import docx
 from langchain_openai import OpenAI
 import streamlit as st  # Import Streamlit for web application interface
-import re  # Import regular expressions for text processing
 from docx import Document  # Import python-docx for Word document creation
 from io import BytesIO  # Import BytesIO for in-memory file operations
 import replicate  # Import Replicate for image generation
@@ -120,6 +119,7 @@ def generate_text(llm,topic):
             "6. Addressed reviewer feedback.\n"
             "7. Creative and engaging blog title.\n"
             "8. Final draft of at least 1000 words."
+            "9. Give a Word Count at the end"
         )
     )
 
@@ -133,10 +133,6 @@ def generate_text(llm,topic):
 
     # Start the workflow and generate the result
     result = crew.kickoff(inputs=inputs)
-
-    # Using regular expressions to remove markdown URLs and special characters
-    result = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', result)  # Remove markdown URLs and keep only text
-    result = re.sub(r'[_*`]', '', result)  # Remove other markdown special characters
 
     return result
 
@@ -163,6 +159,8 @@ def generate_images(replicate_api_token,prompt):
     else:
         raise ValueError("No image URL returned from Replicate API.")
 
+
+
 # Streamlit web application
 def main():
    st.header('AI Blog Content Generator')
@@ -185,9 +183,12 @@ def main():
                 asyncio.set_event_loop(loop)
                 
             os.environ["OPENAI_API_KEY"] = api_key
-            llm = OpenAI(temperature=0.3)
+            llm = OpenAI(temperature=0.5)
             mod = 'OpenAI'
             return llm
+        
+        llm = asyncio.run(setup_OpenAI())
+        mod='OpenAI'  
         
     elif model == 'Gemini':
 
@@ -207,8 +208,7 @@ def main():
         
         llm = asyncio.run(setup_gemini())
         mod='Gemini'
-        
-        
+         
     # User input for the blog topic
     topic = st.text_input("Enter the blog topic:")
 
@@ -218,9 +218,13 @@ def main():
             
             generated_image_url = generate_images(replicate_api_token,topic) 
             
-            st.image(generated_image_url, caption="Generated Image", use_column_width=True)
+            content_lines = generated_content.split('\n')
+            first_line = content_lines[0]
+            remaining_content = '\n'.join(content_lines[1:])
             
-        st.write(generated_content)
+            st.markdown(first_line)
+            st.image(generated_image_url, caption="Generated Image", use_column_width=True)
+            st.markdown(remaining_content)
 
         # Download the images and add them to the document
         response = requests.get(generated_image_url)
@@ -228,12 +232,14 @@ def main():
         
         doc = Document()
 
-        doc.add_picture(image, width=docx.shared.Inches(4))  # Add image to the document
-        
-         # Option to download content as a Word document
+       # Option to download content as a Word document
         doc.add_heading(topic, 0)
-        doc.add_paragraph(generated_content)
+        doc.add_paragraph(first_line)
 
+        doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
+        
+        doc.add_paragraph(remaining_content)
+                
         buffer = BytesIO()
         doc.save(buffer)
         buffer.seek(0)
