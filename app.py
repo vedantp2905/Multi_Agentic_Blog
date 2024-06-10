@@ -81,13 +81,12 @@ def generate_text(llm, topic):
         description=(f"Based on the research report, craft an engaging and authoritative blog post on {topic}."),
         agent=blog_writer,
         expected_output=(
-            "1. Engaging introduction.\n"
+            "1. Engaging introduction with a hook.\n"
             "2. Detailed exploration of key developments.\n"
             "3. Use of emerging trends and innovative ideas in content.\n"
             "4. Use of unique angles and perspectives in content.\n"
             "5. Clear explanations of complex concepts.\n"
-            "6. Relevant multimedia elements.\n"
-            "7. Compelling conclusion."
+            "7. Compelling conclusion.\n"
         )
     )
 
@@ -180,9 +179,8 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                os.environ["OPENAI_MODEL_NAME"]="gpt-3.5-turbo"
-                llm = OpenAI(temperature=0.6)
-                mod = 'OpenAI'
+                llm = OpenAI(model='gpt-3.5-turbo',temperature=0.6)
+                print("Configured OpenAI model:", llm)
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
