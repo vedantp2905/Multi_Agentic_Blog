@@ -119,7 +119,6 @@ def generate_text(llm, topic):
             "6. Addressed reviewer feedback.\n"
             "7. Creative and engaging blog title.\n"
             "8. Final draft of at least 1000 words."
-            "9. Give a Word Count at the end"
         )
     )
 
