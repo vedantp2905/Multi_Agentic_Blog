@@ -179,7 +179,7 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                llm = OpenAI(model='gpt-3.5-turbo',temperature=0.6)
+                llm = OpenAI(model='gpt-3.5-turbo-instruct',temperature=0.6,)
                 print("Configured OpenAI model:", llm)
                 return llm
 
