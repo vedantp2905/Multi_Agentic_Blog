@@ -1,4 +1,5 @@
 streamlit
+openai
 python-docx
 crewai
 duckduckgo_search
