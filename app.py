@@ -179,8 +179,7 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                llm = OpenAI(model='gpt-4o',temperature=0.6,max_tokens=30000)
-                print("Configured OpenAI model:", llm)
+                llm = OpenAI(temperature=0.6,max_tokens=3500)
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
@@ -194,7 +193,7 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 llm = ChatGoogleGenerativeAI(
-                    model="gemini-pro",
+                    model="gemini-1.5-flash",
                     verbose=True,
                     temperature=0.6,
                     google_api_key=api_key  # Use the API key from the environment variable
