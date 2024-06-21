@@ -1,5 +1,6 @@
 import os
 import docx
+from langchain_groq import ChatGroq
 from langchain_openai import OpenAI
 import streamlit as st  # Import Streamlit for web application interface
 from docx import Document  # Import python-docx for Word document creation
@@ -82,7 +83,7 @@ def generate_text(llm, topic):
         agent=blog_writer,
         expected_output=(
             "1. Engaging introduction with a hook.\n"
-            "2. Detailed exploration of key developments.\n"
+            "2. Use of deatiled exploration of key developments.\n"
             "3. Use of emerging trends and innovative ideas in content.\n"
             "4. Use of unique angles and perspectives in content.\n"
             "5. Clear explanations of complex concepts.\n"
@@ -100,8 +101,7 @@ def generate_text(llm, topic):
             "3. Suggestions for improving flow and readability.\n"
             "4. Recommendations for tone and voice.\n"
             "5. Edits for grammar and punctuation.\n"
-            "6. Feedback on multimedia use.\n"
-            "7. Final assessment of readiness."
+            "6. Final assessment of readiness."
         )
     )
 
@@ -134,6 +134,7 @@ def generate_text(llm, topic):
 
     return result
 
+
 # Function to generate images based on prompts
 def generate_images(replicate_api_token, prompt):
     
@@ -162,9 +163,10 @@ def main():
    st.header('AI Blog Content Generator')
    mod = None
    with st.sidebar:
-       with st.form('Gemini/OpenAI'):
+       with st.form('Gemini/OpenAI/Groq'):
             # User selects the model (Gemini/Cohere) and enters API keys
-            model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI'))
+            model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI','Groq'))
+            
             api_key = st.text_input(f'Enter your API key', type="password")
             replicate_api_token = st.text_input('Enter Replicate API key', type="password")
             submitted = st.form_submit_button("Submit")
@@ -179,7 +181,7 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                llm = OpenAI(temperature=0.6,max_tokens=3500)
+                llm = OpenAI(temperature=0.6,max_tokens=2000)
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
@@ -203,6 +205,23 @@ def main():
             llm = asyncio.run(setup_gemini())
             mod = 'Gemini'
         
+        elif model == 'Groq':
+            async def setup_groq():
+                loop = asyncio.get_event_loop()
+                if loop is None:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+
+                llm = ChatGroq(
+                    api_key = api_key,
+                    model = 'llama3-70b-8192'
+                )
+                return llm
+
+            llm = asyncio.run(setup_groq())
+            mod = 'Groq'
+            
+            
         # User input for the blog topic
         topic = st.text_input("Enter the blog topic:")
 
