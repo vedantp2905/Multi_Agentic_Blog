@@ -1,7 +1,7 @@
 import os
 import docx
 from langchain_groq import ChatGroq
-from langchain_openai import OpenAI
+from langchain_openai import ChatOpenAI
 import streamlit as st  # Import Streamlit for web application interface
 from docx import Document  # Import python-docx for Word document creation
 from io import BytesIO  # Import BytesIO for in-memory file operations
@@ -117,7 +117,9 @@ def generate_text(llm, topic):
             "5. Enhanced insights.\n"
             "6. Addressed reviewer feedback.\n"
             "7. Creative and engaging blog title.\n"
-            "8. Final draft of at least 1000 words."
+            "8. Final draft of at least 1000 words.\n"
+            "9. Don't include any agentic thoughts and just give a ready blog without any extra comments."
+
         )
     )
 
@@ -181,7 +183,7 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                llm = OpenAI(temperature=0.6,max_tokens=2000)
+                llm = ChatOpenAI(model='gpt-4-turbo',temperature=0.6, max_tokens=2000,api_key=api_key)
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
