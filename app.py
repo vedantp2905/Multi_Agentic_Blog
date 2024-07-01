@@ -164,6 +164,15 @@ def generate_images(replicate_api_token, prompt):
 def main():
    st.header('AI Blog Content Generator')
    mod = None
+   
+   # Initialize session state
+   if 'generated_content' not in st.session_state:
+        st.session_state.generated_content = None
+   if 'generated_image_url' not in st.session_state:
+        st.session_state.generated_image_url = None
+   if 'topic' not in st.session_state:
+        st.session_state.topic = ""
+        
    with st.sidebar:
        with st.form('Gemini/OpenAI/Groq'):
             # User selects the model (Gemini/Cohere) and enters API keys
@@ -224,44 +233,46 @@ def main():
             mod = 'Groq'
             
             
-        # User input for the blog topic
-        topic = st.text_input("Enter the blog topic:")
+        topic = st.text_input("Enter the blog topic:", value=st.session_state.topic)
+        st.session_state.topic = topic
 
         if st.button("Generate Blog Content"):
             with st.spinner("Generating content..."):
-                generated_content = generate_text(llm, topic)
-                generated_image_url = generate_images(replicate_api_token, topic)
+                st.session_state.generated_content = generate_text(llm, topic)
+                st.session_state.generated_image_url = generate_images(replicate_api_token, topic)
 
-                content_lines = generated_content.split('\n')
-                first_line = content_lines[0]
-                remaining_content = '\n'.join(content_lines[1:])
+        # Display content if it exists in session state
+        if st.session_state.generated_content and st.session_state.generated_image_url:
+            content_lines = st.session_state.generated_content.split('\n')
+            first_line = content_lines[0]
+            remaining_content = '\n'.join(content_lines[1:])
 
-                st.markdown(first_line)
-                st.image(generated_image_url, caption="Generated Image", use_column_width=True)
-                st.markdown(remaining_content)
+            st.markdown(first_line)
+            st.image(st.session_state.generated_image_url, caption="Generated Image", use_column_width=True)
+            st.markdown(remaining_content)
 
-                # Download the images and add them to the document
-                response = requests.get(generated_image_url)
-                image = BytesIO(response.content)
+            # Download the images and add them to the document
+            response = requests.get(st.session_state.generated_image_url)
+            image = BytesIO(response.content)
 
-                doc = Document()
+            doc = Document()
 
-                # Option to download content as a Word document
-                doc.add_heading(topic, 0)
-                doc.add_paragraph(first_line)
-                doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
-                doc.add_paragraph(remaining_content)
+            # Option to download content as a Word document
+            doc.add_heading(topic, 0)
+            doc.add_paragraph(first_line)
+            doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
+            doc.add_paragraph(remaining_content)
 
-                buffer = BytesIO()
-                doc.save(buffer)
-                buffer.seek(0)
+            buffer = BytesIO()
+            doc.save(buffer)
+            buffer.seek(0)
 
-                st.download_button(
-                    label="Download as Word Document",
-                    data=buffer,
-                    file_name=f"{topic}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+            st.download_button(
+                label="Download as Word Document",
+                data=buffer,
+                file_name=f"{topic}.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
 
 if __name__ == "__main__":
     main()
