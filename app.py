@@ -7,7 +7,6 @@ from docx import Document  # Import python-docx for Word document creation
 from io import BytesIO  # Import BytesIO for in-memory file operations
 import replicate  # Import Replicate for image generation
 import requests  # Import requests to download images
-
 import asyncio
 import google.generativeai as genai  # Import the appropriate module for Gemini
 
@@ -83,11 +82,11 @@ def generate_text(llm, topic):
         agent=blog_writer,
         expected_output=(
             "1. Engaging introduction with a hook.\n"
-            "2. Use of deatiled exploration of key developments.\n"
-            "3. Use of emerging trends and innovative ideas in content.\n"
-            "4. Use of unique angles and perspectives in content.\n"
+            "2. Detailed exploration of key developments.\n"
+            "3. Emerging trends and innovative ideas in content.\n"
+            "4. Unique angles and perspectives in content.\n"
             "5. Clear explanations of complex concepts.\n"
-            "7. Compelling conclusion.\n"
+            "6. Compelling conclusion.\n"
         )
     )
 
@@ -119,7 +118,6 @@ def generate_text(llm, topic):
             "7. Creative and engaging blog title.\n"
             "8. Final draft of at least 1000 words.\n"
             "9. Don't include any agentic thoughts and just give a ready blog without any extra comments."
-
         )
     )
 
@@ -139,7 +137,6 @@ def generate_text(llm, topic):
 
 # Function to generate images based on prompts
 def generate_images(replicate_api_token, prompt):
-    
     os.environ["REPLICATE_API_TOKEN"] = replicate_api_token
 
     # Define the input for the image generation
@@ -162,28 +159,27 @@ def generate_images(replicate_api_token, prompt):
 
 # Streamlit web application
 def main():
-   st.header('AI Blog Content Generator')
-   mod = None
-   
-   # Initialize session state
-   if 'generated_content' not in st.session_state:
+    st.header('AI Blog Content Generator')
+    mod = None
+
+    # Initialize session state
+    if 'generated_content' not in st.session_state:
         st.session_state.generated_content = None
-   if 'generated_image_url' not in st.session_state:
+    if 'generated_image_url' not in st.session_state:
         st.session_state.generated_image_url = None
-   if 'topic' not in st.session_state:
+    if 'topic' not in st.session_state:
         st.session_state.topic = ""
-        
-   with st.sidebar:
-       with st.form('Gemini/OpenAI/Groq'):
+
+    with st.sidebar:
+        with st.form('Gemini/OpenAI/Groq'):
             # User selects the model (Gemini/Cohere) and enters API keys
-            model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI','Groq'))
-            
+            model = st.radio('Choose Your LLM', ('Gemini', 'OpenAI', 'Groq'))
             api_key = st.text_input(f'Enter your API key', type="password")
             replicate_api_token = st.text_input('Enter Replicate API key', type="password")
             submitted = st.form_submit_button("Submit")
 
-   # Check if API key is provided and set up the language model accordingly
-   if api_key:
+    # Check if API key is provided and set up the language model accordingly
+    if api_key:
         if model == 'OpenAI':
             async def setup_OpenAI():
                 loop = asyncio.get_event_loop()
@@ -192,7 +188,7 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 os.environ["OPENAI_API_KEY"] = api_key
-                llm = ChatOpenAI(model='gpt-4-turbo',temperature=0.6, max_tokens=2000,api_key=api_key)
+                llm = ChatOpenAI(model='gpt-4-turbo', temperature=0.6, max_tokens=2000, api_key=api_key)
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
@@ -215,7 +211,7 @@ def main():
 
             llm = asyncio.run(setup_gemini())
             mod = 'Gemini'
-        
+
         elif model == 'Groq':
             async def setup_groq():
                 loop = asyncio.get_event_loop()
@@ -224,15 +220,14 @@ def main():
                     asyncio.set_event_loop(loop)
 
                 llm = ChatGroq(
-                    api_key = api_key,
-                    model = 'llama3-70b-8192'
+                    api_key=api_key,
+                    model='llama3-70b-8192'
                 )
                 return llm
 
             llm = asyncio.run(setup_groq())
             mod = 'Groq'
-            
-            
+
         topic = st.text_input("Enter the blog topic:", value=st.session_state.topic)
         st.session_state.topic = topic
 
