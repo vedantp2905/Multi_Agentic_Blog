@@ -229,8 +229,8 @@ def generate_images(replicate_api_token, prompt):
 # Streamlit web application
 def main():
     st.header('AI Blog Content Generator')
-    validity_model= True
-    validity_replicate = True
+    validity_model= False
+    validity_replicate = False
 
     # Initialize session state
     if 'generated_content' not in st.session_state:
@@ -294,8 +294,7 @@ def main():
                 if loop is None:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-                    
-                os.environ["GOOGLE_API_KEY"] = api_key
+
                 llm = ChatGoogleGenerativeAI(
                     model="gemini-1.5-flash",
                     verbose=True,
