@@ -11,8 +11,6 @@ import asyncio
 import google.generativeai as genai  # Import the appropriate module for Gemini
 from langchain_google_genai import ChatGoogleGenerativeAI
 from crewai import Agent, Task, Crew, Process
-from langchain_community.tools import DuckDuckGoSearchRun
-
 
 def verify_gemini_api_key(api_key):
     API_VERSION = 'v1'
@@ -97,13 +95,6 @@ def verify_replicate_api_key(api_key):
 def generate_text(llm, topic):
     inputs = {'topic': topic}
 
-    # Initialize DuckDuckGo web search tool: Enables real-time fact-finding for debates
-    search_tool = DuckDuckGoSearchRun(
-        name="duckduckgo_search",
-        description="""Search the web using DuckDuckGo. Action Input should look like this:
-                       {"query": "<Whatever you want to search>"}"""
-    )
-
     # Define Blog Researcher Agent
     blog_researcher = Agent(
         role='Blog Content Researcher',
@@ -150,9 +141,8 @@ def generate_text(llm, topic):
             "4. Unique angles and untapped opportunities.\n"
             "5. Potential content ideas with brief descriptions.\n"
             "6. List of relevant sources."
-        ),
-        tools=[search_tool]
-    )
+        )
+        )
 
     # Define Task for Writer
     task_writer = Task(
