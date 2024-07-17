@@ -113,7 +113,7 @@ def generate_text(llm, topic):
         verbose=True,
         allow_delegation=False,
         llm=llm
-    )
+        )
 
     # Define Blog Writer Agent
     blog_writer = Agent(
@@ -122,7 +122,9 @@ def generate_text(llm, topic):
         backstory=("A seasoned writer known for distilling complex topics into captivating stories, with a deep understanding of audience psychology."),
         verbose=True,
         allow_delegation=False,
-        llm=llm
+        llm=llm,
+        max_iter=5
+
     )
 
     # Define Blog Reviewer Agent
@@ -132,7 +134,9 @@ def generate_text(llm, topic):
         backstory=("An expert editor with a meticulous eye for detail, known for elevating content to publication-ready standards."),
         verbose=True,
         allow_delegation=False,
-        llm=llm
+        llm=llm,
+        max_iter=5
+
     )
 
     # Define Task for Researcher
@@ -231,12 +235,12 @@ def generate_images(replicate_api_token, prompt):
     else:
         raise ValueError("No image URL returned from Replicate API.")
 
+    
 # Streamlit web application
 def main():
     st.header('AI Blog Content Generator')
-    
-    validity_model= ''
-    validity_replicate =''
+    validity_model= False
+    validity_replicate = False
 
     # Initialize session state
     if 'generated_content' not in st.session_state:
@@ -254,7 +258,7 @@ def main():
             replicate_api_token = st.text_input('Enter Replicate API key', type="password")
             submitted = st.form_submit_button("Submit")
             
-        if submitted:
+        if api_key and replicate_api_token:
             if model == "Gemini":
                 validity_model = verify_gemini_api_key(api_key)
                 if validity_model ==True:
@@ -279,8 +283,8 @@ def main():
                 st.write(f"Valid Replicate API key")
             else:
                 st.write(f"Invalid Replicate API key")
-
-    if validity_model == True and validity_replicate==True:
+    
+    if validity_model and validity_replicate:
         if model == 'OpenAI':
             async def setup_OpenAI():
                 loop = asyncio.get_event_loop()
@@ -326,46 +330,47 @@ def main():
 
             llm = asyncio.run(setup_groq())
 
-        topic = st.text_input("Enter the blog topic:", value=st.session_state.topic)
+
+        topic = st.text_input("Enter the blog topic:")
         st.session_state.topic = topic
-    
-        if st.button("Generate Blog Content"):
-            with st.spinner("Generating content..."):
-                st.session_state.generated_content = generate_text(llm, st.session_state.topic)
-                st.session_state.generated_image_url = generate_images(replicate_api_token, st.session_state.topic)
 
-        # Display content if it exists in session state
-        if st.session_state.generated_content and st.session_state.generated_image_url:
-            content_lines = st.session_state.generated_content.split('\n')
-            first_line = content_lines[0]
-            remaining_content = '\n'.join(content_lines[1:])
+    if st.button("Generate Blog Content"):
+        with st.spinner("Generating content..."):
+            st.session_state.generated_content = generate_text(llm, st.session_state.topic)
+            st.session_state.generated_image_url = generate_images(replicate_api_token, st.session_state.topic)
 
-            st.markdown(first_line)
-            st.image(st.session_state.generated_image_url, caption="Generated Image", use_column_width=True)
-            st.markdown(remaining_content)
+    # Display content if it exists in session state
+    if st.session_state.generated_content and st.session_state.generated_image_url:
+        content_lines = st.session_state.generated_content.split('\n')
+        first_line = content_lines[0]
+        remaining_content = '\n'.join(content_lines[1:])
 
-            # Download the images and add them to the document
-            response = requests.get(st.session_state.generated_image_url)
-            image = BytesIO(response.content)
+        st.markdown(first_line)
+        st.image(st.session_state.generated_image_url, caption="Generated Image", use_column_width=True)
+        st.markdown(remaining_content)
 
-            doc = Document()
+        # Download the images and add them to the document
+        response = requests.get(st.session_state.generated_image_url)
+        image = BytesIO(response.content)
 
-            # Option to download content as a Word document
-            doc.add_heading(topic, 0)
-            doc.add_paragraph(first_line)
-            doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
-            doc.add_paragraph(remaining_content)
+        doc = Document()
 
-            buffer = BytesIO()
-            doc.save(buffer)
-            buffer.seek(0)
+        # Option to download content as a Word document
+        doc.add_heading(topic, 0)
+        doc.add_paragraph(first_line)
+        doc.add_picture(image, width=docx.shared.Inches(6))  # Add image to the document
+        doc.add_paragraph(remaining_content)
 
-            st.download_button(
-                label="Download as Word Document",
-                data=buffer,
-                file_name=f"{topic}.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        st.download_button(
+            label="Download as Word Document",
+            data=buffer,
+            file_name=f"{topic}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
 
 if __name__ == "__main__":
     main()
