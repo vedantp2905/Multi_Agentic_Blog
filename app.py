@@ -9,17 +9,91 @@ import replicate  # Import Replicate for image generation
 import requests  # Import requests to download images
 import asyncio
 import google.generativeai as genai  # Import the appropriate module for Gemini
-
-# Import ChatGoogleGenerativeAI: High-level interface to Google's AI models
 from langchain_google_genai import ChatGoogleGenerativeAI
-
-# Import Agent, Task, Crew, Process: Core classes for AI agent workflows
 from crewai import Agent, Task, Crew, Process
-
-# Import DuckDuckGoSearchRun: Tool for web searches via DuckDuckGo
 from langchain_community.tools import DuckDuckGoSearchRun
 
-# Function to generate text based on topic
+
+def verify_gemini_api_key(api_key):
+    API_VERSION = 'v1'
+    api_url = f"https://generativelanguage.googleapis.com/{API_VERSION}/models?key={api_key}"
+    
+    try:
+        response = requests.get(api_url, headers={'Content-Type': 'application/json'})
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        
+        # If we get here, it means the request was successful
+        return True
+    
+    except requests.exceptions.HTTPError as e:
+        
+        return False
+    
+    except requests.exceptions.RequestException as e:
+        # For any other request-related exceptions
+        raise ValueError(f"An error occurred: {str(e)}")
+
+def verify_gpt_api_key(api_key):
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # Using a simple request to the models endpoint
+    response = requests.get("https://api.openai.com/v1/models", headers=headers)
+    
+    if response.status_code == 200:
+        return True
+    elif response.status_code == 401:
+        return False
+    else:
+        print(f"Unexpected status code: {response.status_code}")
+        return False
+    
+def verify_groq_api_key(api_key):
+    api_url = "https://api.groq.com/openai/v1/models"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        response = requests.get(api_url, headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        
+        # If we get here, it means the request was successful
+        return True
+    
+    except requests.exceptions.HTTPError as e:
+        
+        return False
+    
+    except requests.exceptions.RequestException as e:
+        # For any other request-related exceptions
+        raise ValueError(f"An error occurred: {str(e)}")
+    
+def verify_replicate_api_key(api_key):
+    api_url = "https://api.replicate.com/v1/models"
+    headers = {
+        "Authorization": f"Token {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    try:
+        response = requests.get(api_url, headers=headers)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        
+        # If we get here, it means the request was successful
+        return True
+    
+    except requests.exceptions.HTTPError as e:
+    
+        return False
+        
+    except requests.exceptions.RequestException as e:
+        # For any other request-related exceptions
+        raise ValueError(f"An error occurred: {str(e)}")
+    
 def generate_text(llm, topic):
     inputs = {'topic': topic}
 
@@ -161,6 +235,8 @@ def generate_images(replicate_api_token, prompt):
 def main():
     st.header('AI Blog Content Generator')
     mod = None
+    validity_model= ''
+    validity_replicate =''
 
     # Initialize session state
     if 'generated_content' not in st.session_state:
@@ -177,9 +253,34 @@ def main():
             api_key = st.text_input(f'Enter your API key', type="password")
             replicate_api_token = st.text_input('Enter Replicate API key', type="password")
             submitted = st.form_submit_button("Submit")
-
-    # Check if API key is provided and set up the language model accordingly
-    if api_key:
+            
+        if submitted:
+            if model == "Gemini":
+                validity_model = verify_gemini_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")
+            elif model == "OpenAI":
+                validity_model = verify_gpt_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")            
+            elif model == "Groq":
+                validity_model = verify_groq_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")
+            
+            validity_replicate = verify_replicate_api_key(replicate_api_token)
+            if validity_replicate ==True:
+                st.write(f"Valid Replicate API key")
+            else:
+                st.write(f"Invalid Replicate API key")
+                
+    if validity_model == True and validity_replicate==True:
         if model == 'OpenAI':
             async def setup_OpenAI():
                 loop = asyncio.get_event_loop()
