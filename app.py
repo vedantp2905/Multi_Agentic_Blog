@@ -234,7 +234,7 @@ def generate_images(replicate_api_token, prompt):
 # Streamlit web application
 def main():
     st.header('AI Blog Content Generator')
-    mod = None
+    
     validity_model= ''
     validity_replicate =''
 
@@ -279,7 +279,7 @@ def main():
                 st.write(f"Valid Replicate API key")
             else:
                 st.write(f"Invalid Replicate API key")
-                
+
     if validity_model == True and validity_replicate==True:
         if model == 'OpenAI':
             async def setup_OpenAI():
@@ -293,7 +293,6 @@ def main():
                 return llm
 
             llm = asyncio.run(setup_OpenAI())
-            mod = 'OpenAI'
 
         elif model == 'Gemini':
             async def setup_gemini():
@@ -311,7 +310,6 @@ def main():
                 return llm
 
             llm = asyncio.run(setup_gemini())
-            mod = 'Gemini'
 
         elif model == 'Groq':
             async def setup_groq():
@@ -327,15 +325,14 @@ def main():
                 return llm
 
             llm = asyncio.run(setup_groq())
-            mod = 'Groq'
 
         topic = st.text_input("Enter the blog topic:", value=st.session_state.topic)
         st.session_state.topic = topic
-
+    
         if st.button("Generate Blog Content"):
             with st.spinner("Generating content..."):
-                st.session_state.generated_content = generate_text(llm, topic)
-                st.session_state.generated_image_url = generate_images(replicate_api_token, topic)
+                st.session_state.generated_content = generate_text(llm, st.session_state.topic)
+                st.session_state.generated_image_url = generate_images(replicate_api_token, st.session_state.topic)
 
         # Display content if it exists in session state
         if st.session_state.generated_content and st.session_state.generated_image_url:
