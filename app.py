@@ -229,8 +229,8 @@ def generate_images(replicate_api_token, prompt):
 # Streamlit web application
 def main():
     st.header('AI Blog Content Generator')
-    validity_model= False
-    validity_replicate = False
+    validity_model= True
+    validity_replicate = True
 
     # Initialize session state
     if 'generated_content' not in st.session_state:
