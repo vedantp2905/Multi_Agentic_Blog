@@ -295,7 +295,7 @@ def main():
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
                     
-                os.environ[GOOGLE_API_KEY]=api_key
+                os.environ["GOOGLE_API_KEY"] = api_key
                 llm = ChatGoogleGenerativeAI(
                     model="gemini-1.5-flash",
                     verbose=True,
