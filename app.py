@@ -10,7 +10,9 @@ import requests  # Import requests to download images
 import asyncio
 import google.generativeai as genai  # Import the appropriate module for Gemini
 from langchain_google_genai import ChatGoogleGenerativeAI
-from crewai import Agent, Task, Crew, Process
+from crewai import Agent, Task, Crew
+from langchain_community.tools import DuckDuckGoSearchRun
+
 
 def verify_gemini_api_key(api_key):
     API_VERSION = 'v1'
@@ -93,6 +95,12 @@ def verify_replicate_api_key(api_key):
         raise ValueError(f"An error occurred: {str(e)}")
     
 def generate_text(llm, topic):
+    
+    search_tool = DuckDuckGoSearchRun(
+    name="duckduckgo_search",
+    description="""Search the web using DuckDuckGo. Give argument -
+                {"query": "<Whatever you want to search>"}""",
+)
     inputs = {'topic': topic}
 
     # Define Blog Researcher Agent
@@ -132,7 +140,7 @@ def generate_text(llm, topic):
 
     # Define Task for Researcher
     task_researcher = Task(
-        description=(f"Research the latest trends and insights on {topic}. Identify key developments, emerging trends, unique perspectives, and content ideas."),
+        description=(f"Research the latest trends and insights on {topic}. Identify key developments, emerging trends, unique perspectives, and content ideas. You can use the serach tool if needed "),
         agent=blog_researcher,
         expected_output=(
             f"1. Overview and background of {topic}.\n"
@@ -141,7 +149,8 @@ def generate_text(llm, topic):
             "4. Unique angles and untapped opportunities.\n"
             "5. Potential content ideas with brief descriptions.\n"
             "6. List of relevant sources."
-        )
+        ),
+        tools=[search_tool]
         )
 
     # Define Task for Writer
